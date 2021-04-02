@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { mesh } from "@manishiitg/peerjs-mesh"
+// import { mesh } from "@manishiitg/peerjs-mesh"
+import { mesh } from "../lib/mesh"
 import PeerNode from "./PeerNode";
 import isEqual from 'lodash/isEqual'
 import { v4 as uuidv4 } from 'uuid';
@@ -7,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 const PeerClient = () => {
     const peer1 = useRef()
     const peer2 = useRef()
-    const peer3 = useRef()
+    const peer3 = useRef() 
     const peer4 = useRef()
 
     useEffect(() => {

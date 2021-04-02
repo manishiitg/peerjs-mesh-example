@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import classnames from "classnames"
+// import { mesh } from "@manishiitg/peerjs-mesh"
 import { mesh } from "../lib/mesh"
 import VideoStream from "./VideoStream"
 
@@ -54,7 +55,8 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
                 "log_id": "peer" + idx,
                 "initData": {
                     "name": idx
-                }
+                },
+                "mesh_limit": 2
                 // "connection": {
                 //     "host": "peerjs.platoo-platform.com",
                 //     "secure": true,
@@ -84,6 +86,9 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
                 streams[id] = stream
                 return Object.assign({}, streams)
             })
+        })
+        peer.current.on("meshlimitexceeded", limit => {
+            setError("Mesh Limited Exceeded" + limit)
         })
         peer.current.on("streamdrop", (id) => {
             setStreams(streams => {
