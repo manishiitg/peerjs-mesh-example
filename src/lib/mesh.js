@@ -48,6 +48,14 @@ export const mesh = (room, options = {}) => {
         // in host mode, there is always on host
         // and host is responsible for communication with all peers
     }
+    if (!options.do_health_check) {
+        // do health pings 
+        options.do_health_check = true
+    }
+    if (!options.do_health_check_interval) {
+        // intervals to do health pings 
+        options.do_health_check_interval = 2000
+    }
     if (!room) {
         throw new Error("Room Name is mandatory to join a mesh")
     }

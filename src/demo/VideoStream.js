@@ -7,7 +7,7 @@ const VideoStream = ({ stream, id }) => {
         videoRef.current.srcObject = stream
     }, [])
     return (
-        <div className={classnames("img-thumbnail m-1", { "border-primary": "mine" === id })}>
+        <div className={classnames("img-thumbnail m-1", { "border-primary": id.indexOf("mine") !== -1 })}>
             <video width="100" style={{ "height": "auto" }} ref={videoRef} playsInline autoPlay muted />
         </div>
     )

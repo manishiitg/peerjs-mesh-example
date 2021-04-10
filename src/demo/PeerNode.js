@@ -22,6 +22,9 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
 
     const [streams, setStreams] = useState({})
 
+    const [isscreensharing, setScreenSharing] = useState(false)
+    const screenCaptureRef = useRef()
+
     const stopCall = () => {
         setStreams(streams => {
             let stream = streams["mine"]
@@ -56,7 +59,7 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
                 "initData": {
                     "name": idx
                 },
-                "mesh_limit": 2
+                "mesh_limit": 4
                 // "connection": {
                 //     "host": "peerjs.platoo-platform.com",
                 //     "secure": true,
@@ -181,6 +184,45 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
                         {streams["mine"] && <button className="btn btn-outline-danger btn-small" onClick={() => {
                             stopCall()
                         }}>Stop Call</button>}
+
+                        {!isscreensharing && <button className="btn btn-outline-danger" onClick={() => {
+                            if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                                // The new experimental getDisplayMedia API is available, let's use that
+                                // https://groups.google.com/forum/#!topic/discuss-webrtc/Uf0SrR4uxzk
+                                // https://webrtchacks.com/chrome-screensharing-getdisplaymedia/
+                                navigator.mediaDevices.getDisplayMedia()
+                                    .then(function (screenCaptureStream) {
+                                        screenCaptureRef.current = screenCaptureStream
+                                        setScreenSharing(true)
+
+                                        peer.current.call(screenCaptureStream)
+
+                                        setStreams(streams => {
+                                            delete streams["mine"]
+                                            streams["minescreen"] = screenCaptureStream
+                                            return Object.assign({}, streams)
+                                        })
+
+                                    }).catch((err) => {
+                                        setScreenSharing(false)
+                                        console.error("Unable to start screen sharing", err)
+                                        alert("Unable to start screen sharing")
+                                    })
+                            } else {
+                                alert("Your browser doesn't support screen sharing")
+                            }
+                        }}>Share Screen</button>}
+
+                        {isscreensharing && <button className="btn btn-outline-danger" onClick={() => {
+                            screenCaptureRef.current.getTracks().forEach((ele) => ele.stop())
+                            setScreenSharing(false)
+                            setStreams(streams => {
+                                delete streams["minescreen"]
+                                return Object.assign({}, streams)
+                            })
+                            startCall()
+                        }}>Stop Screen</button>}
+
                     </div>
                 </div>
                 {error && <div className="alert alert-danger" role="alert">
