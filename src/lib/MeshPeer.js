@@ -192,6 +192,7 @@ class MeshPeer extends EventEmitter {
     _serveDataConnection = (dc) => {
         if (!dc) return
         dc.on("data", (data) => {
+            console.log("{" + this.options.log_id + "} ", "data recevied by", this.id, " from ", dc.peer, data, " when serving")
             if (data.healthcheck) {
                 if (data.healthcheck === "ping") {
                     return dc.send({ "healthcheck": "pong" })
@@ -420,7 +421,7 @@ class MeshPeer extends EventEmitter {
     }
 
     _currentStream = false
-    _setCurrentStream = (stream) => {
+    _setCurrentStream = (stream, usePreviousStream) => {
         if (!this._currentStream) {
             this._currentStream = stream
             return true
@@ -447,11 +448,13 @@ class MeshPeer extends EventEmitter {
                 if (hasVideo) {
                     Object.keys(this._mediaConnectionMap).forEach(key => {
                         console.log(this._mediaConnectionMap[key].peerConnection)
-                        let videoTrack = this._mediaConnectionMap[key].peerConnection.getSenders().find((rtpsender) => {
-                            return rtpsender.track && rtpsender.track.kind === "video"
-                        })
-                        console.log("{" + this.options.log_id + "} ", "videoTrack", videoTrack)
-                        videoTrack.replaceTrack(hasVideo)
+                        if (this._mediaConnectionMap[key].peerConnection) {
+                            let videoTrack = this._mediaConnectionMap[key].peerConnection.getSenders().find((rtpsender) => {
+                                return rtpsender.track && rtpsender.track.kind === "video"
+                            })
+                            console.log("{" + this.options.log_id + "} ", "videoTrack", videoTrack)
+                            videoTrack.replaceTrack(hasVideo)
+                        }
                     })
                 }
                 if (hasAudio) {
@@ -473,7 +476,7 @@ class MeshPeer extends EventEmitter {
                     // will check if previous had audio and use that
 
                     let oldstreamHasAudio = this._currentStream.getTracks().find(track => track.kind === "audio")
-                    if (oldstreamHasAudio)
+                    if (oldstreamHasAudio && usePreviousStream)
                         stream.addTrack(oldstreamHasAudio)
 
                     this._currentStream = stream
@@ -483,7 +486,7 @@ class MeshPeer extends EventEmitter {
                     // will check if previous had video and use that
 
                     let oldstreamHasVideo = this._currentStream.getTracks().find(track => track.kind === "video")
-                    if (oldstreamHasVideo)
+                    if (oldstreamHasVideo && usePreviousStream)
                         stream.addTrack(oldstreamHasVideo)
 
                     this._currentStream = stream
