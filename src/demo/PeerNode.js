@@ -22,9 +22,14 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
 
     const [streams, setStreams] = useState({})
 
+    const [text, setText] = useState("")
+    const [selectPeer, setSelectPeer] = useState(false)
+
+
     const [isscreensharing, setScreenSharing] = useState(false)
     const screenCaptureRef = useRef()
 
+    const initDataMap = useRef({})
     const stopCall = () => {
         setStreams(streams => {
             let stream = streams["mine"]
@@ -59,7 +64,9 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
                 "initData": {
                     "name": idx
                 },
-                "mesh_limit": 4
+                "owner_mode": window.location.href.indexOf("owner_mode") >= 0,
+                "is_owner": window.location.href.indexOf("is_owner") >= 0,
+                "mesh_limit": 2
                 // "connection": {
                 //     "host": "peerjs.platoo-platform.com",
                 //     "secure": true,
@@ -72,6 +79,7 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
 
         peer.current.on("initData", (id, data) => {
             console.log("initDatainitDatainitDatainitData", id, data)
+            initDataMap.current[id] = data
         })
         peer.current.on("joined", (id) => {
             setId(id)
@@ -85,6 +93,7 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
         })
 
         peer.current.on("stream", (stream, id) => {
+            console.log("stream added", id, streams)
             setStreams(streams => {
                 streams[id] = stream
                 return Object.assign({}, streams)
@@ -94,10 +103,13 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
             setError("Mesh Limited Exceeded" + limit)
         })
         peer.current.on("streamdrop", (id) => {
+            console.log("streamdrop", id, streams)
             setStreams(streams => {
-                console.log("streamdropstreamdropstreamdropstreamdrop", id, idx, streams)
                 delete streams[id]
                 console.log("streamsss", streams)
+                if (Object.keys(streams).length === 0) {
+                    return {}
+                }
                 return Object.assign({}, streams)
             })
         })
@@ -115,8 +127,11 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
             setIsHostPeer(ishost)
             if (ishost) onIsHost(idx)
         })
-        peer.current.on("data", (data) => {
-            setData(data)
+        peer.current.on("data", (data, id) => {
+            setData({
+                ...data,
+                id
+            })
             onData(idx, data)
         })
         peer.current.on("error", (msg) => {
@@ -150,6 +165,7 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
                     {streams && Object.keys(streams).map((xid) => {
                         return (
                             <div className="d-flex" key={xid}>
+                                <span className="d-none">{xid}</span>
                                 <VideoStream stream={streams[xid]} id={xid} />
                             </div>
                         )
@@ -224,6 +240,50 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
                         }}>Stop Screen</button>}
 
                     </div>
+                    <div className="mt-3 input-group">
+
+                        <input className={"form-control"} type="text" value={text} onChange={(evt) => {
+                            setText(evt.target.value)
+
+                            console.log("selectPeerselectPeer", selectPeer)
+                            if (!selectPeer) {
+                                peer.current.send({
+                                    "text": evt.target.value
+                                })
+                            } else {
+                                peer.current.send({
+                                    "text": evt.target.value
+                                }, selectPeer)
+                            }
+                        }} />
+                        <div className="dropdown">
+
+                            <button onClick={() => {
+
+                                // setText("")
+                            }} className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">Send Text</button>
+                            <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                <li>
+                                    <a onClick={() => {
+                                        setSelectPeer(false)
+                                    }} href="#" className="dropdown-item">
+                                        -NA-
+                                    </a>
+                                </li>
+                                {peers.map((peer) => {
+                                    return (<li key={peer}>
+                                        <a onClick={() => {
+                                            setSelectPeer(peer)
+                                        }} href="#" className="dropdown-item">
+                                            {peer} - {initDataMap.current[peer] ? JSON.stringify(initDataMap.current[peer]) : ""}
+                                        </a>
+                                    </li>)
+                                })}
+
+                            </ul>
+                        </div>
+                    </div>
+
                 </div>
                 {error && <div className="alert alert-danger" role="alert">
                     {error}
