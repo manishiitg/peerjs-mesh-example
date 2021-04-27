@@ -66,12 +66,12 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
                 },
                 "owner_mode": window.location.href.indexOf("owner_mode") >= 0,
                 "is_owner": window.location.href.indexOf("is_owner") >= 0,
-                "mesh_limit": 2
-                // "connection": {
-                //     "host": "peerjs.platoo-platform.com",
-                //     "secure": true,
-                //     "path": "myapp"
-                // }
+                "mesh_limit": 2,
+                "connection": {
+                    "host": "peerjs.platoo-platform.com",
+                    "secure": true,
+                    "path": "myapp"
+                }
             }
         )
 
@@ -136,6 +136,10 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
         })
         peer.current.on("error", (msg) => {
             setError(msg + "")
+        })
+
+        peer.current.on("dropped", (err) => {
+            console.log("call got dropped due to network", err)
         })
 
         return () => {

@@ -101,7 +101,7 @@ const PeerClient = () => {
         }
     }, [])
 
-    const roomId = useRef("testing123-mesh-room-id")
+    const roomId = useRef("testing12345-mesh-room-id")
     const [peers, setPeers] = useState([0])
     const removePeer = (idx) => {
         console.log("removing peer:", idx)

@@ -29,7 +29,7 @@ export default class MeshHost extends EventEmitter {
         let checkInterval = this.options.do_health_check_interval
         this._healtCheckInterval = setInterval(() => {
             Object.keys(this._dataConnectionMap).forEach(key => {
-                console.log("{" + this.options.log_id + "} host health check connection open:", this._dataConnectionMap[key].open, " connection reliable: ", this._dataConnectionMap[key].reliable)
+                // console.log("{" + this.options.log_id + "} host health check connection open:", this._dataConnectionMap[key].open, " connection reliable: ", this._dataConnectionMap[key].reliable)
                 this._dataConnectionMap[key].send({ "healthcheck": "ping" })
                 if (this._dataConnectionPingMap[key]) {
                     let timePassed = (new Date().getTime() - this._dataConnectionPingMap[key])
@@ -57,10 +57,18 @@ export default class MeshHost extends EventEmitter {
             if (err.type === "disconnected" || err.type === "network" || err.type === "server-error" || err.type === "socket-error" || err.type === "socket-closed") {
                 console.log("{" + this.options.log_id + "} ", "peer error", this.peerid, err.type, err)
                 if (this.options.retry && this._connectionRetry < this.options.retry) {
-                    console.log("{" + this.options.log_id + "} ", "retrying connection ", this._connectionRetry)
-                    setTimeout(() => {
-                        this._connectToPeerJs(this.peerid)
-                    }, this.options.retry_interval)
+                    if (this.id) {
+                        //error came after peer was connected might be internet issue etc
+                        console.log("call dropped at host due to network issues, connecting again")
+                        setTimeout(() => {
+                            this._connectToPeerJs(this.peerid)
+                        }, this.options.retry_interval)
+                    } else {
+                        console.log("{" + this.options.log_id + "} ", "retrying connection ", this._connectionRetry)
+                        setTimeout(() => {
+                            this._connectToPeerJs(this.peerid)
+                        }, this.options.retry_interval)
+                    }
                 } else {
                     // Object.keys(this._dataConnectionMap).forEach(key => {
                     //     this._dataConnectionMap[key].send({
