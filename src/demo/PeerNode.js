@@ -45,7 +45,7 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
     }
     const startCall = () => {
         var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-        getUserMedia({ video: true, audio: true }, function (stream) {
+        getUserMedia({ video: false, audio: true }, function (stream) {
 
             peer.current.call(stream)
 
@@ -70,8 +70,9 @@ const PeerNode = ({ roomId, idx, removePeer, onData, onSync, onIsHost, meshData,
                 "connection": {
                     "host": "peerjs.platoo-platform.com",
                     "secure": true,
-                    "path": "myapp"
-                }
+                    "path": "myapp",
+                    // "debug": 3
+                },
             }
         )
 
