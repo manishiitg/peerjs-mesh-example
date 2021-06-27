@@ -96,7 +96,8 @@ class MeshNetwork extends EventEmitter {
     _addInternalPeer = (id) => {
         if (this._peerlist.indexOf(id) === -1) {
             this._peerlist.push(id)
-            this.emit("peerjoined", id, this._peerlist)
+            if (id !== this.id)
+                this.emit("peerjoined", id, this._peerlist)
         }
     }
     _removeAllInternalPeers = () => {
@@ -113,7 +114,7 @@ class MeshNetwork extends EventEmitter {
         }
     }
     /**
-     * handle peer joined event on the mesh network
+     * handle peer joined event on the mesh network  
      * @param {*} id peer id of the joined peer
      */
     _listenPeerJoined = (id) => {
@@ -215,6 +216,7 @@ class MeshNetwork extends EventEmitter {
             if (this.options.owner_mode) {
                 if (!this.options.is_owner) {
                     console.log("running on owner mode, but you are not owner so need to wait for owner to connect! trying again in ...", this.options.retry_interval, "mili-sec")
+                    this.emit("host-unavailable")
                     setTimeout(() => {
                         this._connectToHost()
                     }, this.options.retry_interval)
